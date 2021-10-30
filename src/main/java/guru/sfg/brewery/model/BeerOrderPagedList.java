@@ -1,4 +1,4 @@
-/*
+package guru.sfg.brewery.model;/*
  *  Copyright 2019 the original author or authors.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package guru.sfg.beer.order.service.web.model;
+//package guru.sfg.beer.order.service.web.model;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
