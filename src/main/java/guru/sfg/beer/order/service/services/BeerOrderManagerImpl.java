@@ -6,6 +6,7 @@ import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
 import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.statemachine.BeerOrderStateChangeInterceptor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
@@ -14,6 +15,9 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class BeerOrderManagerImpl implements BeerOrderManager {
@@ -35,6 +39,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     return savedBeer;
   }
 
+
   private void sendBeerOrderEvent(BeerOrder beerOrder, BeerOrderEventEnum eventEnum) {
     StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> sm = build(beerOrder);
 
@@ -43,6 +48,24 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         .build();
 
     sm.sendEvent(msg);
+  }
+
+  @Transactional
+  @Override
+  public void processValidationResult(UUID beerOrderId, Boolean isValid) {
+    BeerOrder beerOrder = beerOrderRepository.getOne(beerOrderId);
+
+    if(isValid){
+      sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.E_VALIDATION_PASSED);
+
+      BeerOrder validatedOrder = beerOrderRepository.findById(beerOrderId).get();
+
+      sendBeerOrderEvent(validatedOrder, BeerOrderEventEnum.E_ALLOCATE_ORDER);
+
+    } else {
+      sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.E_VALIDATION_FAILED);
+    }
+
   }
 
   private StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> build(BeerOrder beerOrder) {
