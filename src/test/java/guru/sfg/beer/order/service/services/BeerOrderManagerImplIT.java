@@ -28,6 +28,7 @@ import java.util.UUID;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -92,7 +93,7 @@ class BeerOrderManagerImplIT {
   }
 
   @Test
-  void testNewToAllocated() throws JsonProcessingException {
+  void testNewToAllocated() throws JsonProcessingException, InterruptedException {
 
     BeerDto beerDto = BeerDto.builder()
         .id(beerId)
@@ -106,6 +107,14 @@ class BeerOrderManagerImplIT {
     BeerOrder beerOrder = createBeerOrder();
 
     BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+    await().untilAsserted( () -> {
+      BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
+
+      assertEquals(BeerOrderStatusEnum.ALLOCATED, foundOrder.getOrderStatus());
+    });
+
+    savedBeerOrder = beerOrderRepository.findById(savedBeerOrder.getId()).get();
 
     assertNotNull(savedBeerOrder);
     assertEquals(BeerOrderStatusEnum.ALLOCATED, savedBeerOrder.getOrderStatus());
