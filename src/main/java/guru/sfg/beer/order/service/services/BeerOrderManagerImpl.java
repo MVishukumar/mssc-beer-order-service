@@ -5,6 +5,7 @@ import guru.sfg.beer.order.service.domain.BeerOrderEventEnum;
 import guru.sfg.beer.order.service.domain.BeerOrderStatusEnum;
 import guru.sfg.beer.order.service.repositories.BeerOrderRepository;
 import guru.sfg.beer.order.service.statemachine.BeerOrderStateChangeInterceptor;
+import guru.sfg.brewery.model.BeerOrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -65,6 +66,46 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     } else {
       sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.E_VALIDATION_FAILED);
     }
+
+  }
+
+  @Override
+  public void beerOrderAllocationPassed(BeerOrderDto beerOrderDto) {
+
+    BeerOrder beerOrder = beerOrderRepository.getOne(beerOrderDto.getId());
+    sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.E_ALLOCATION_SUCCESS);
+    updateAllocationQty(beerOrderDto, beerOrder);
+
+  }
+
+  @Override
+  public void beerOrderAllocationPendingInventory(BeerOrderDto beerOrderDto) {
+
+    BeerOrder beerOrder = beerOrderRepository.getOne(beerOrderDto.getId());
+    sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.E_ALLOCATION_NO_INVENTORY);
+    updateAllocationQty(beerOrderDto, beerOrder);
+  }
+
+  private void updateAllocationQty(BeerOrderDto beerOrderDto, BeerOrder beerOrder) {
+
+    BeerOrder allocatedOrder = beerOrderRepository.getOne(beerOrderDto.getId());
+    allocatedOrder.getBeerOrderLines()
+        .forEach(beerOrderLine -> {
+          beerOrderDto.getBeerOrderLines().forEach(beerOrderLineDto -> {
+            if(beerOrderLine.getId().equals(beerOrderDto.getId())) {
+              beerOrderLine.setQuantityAllocated(beerOrderLineDto.getQuantityAllocated());
+            }
+          });
+        });
+
+    beerOrderRepository.saveAndFlush(beerOrder);
+  }
+
+  @Override
+  public void beerOrderAllocationFailed(BeerOrderDto beerOrderDto) {
+
+    BeerOrder beerOrder = beerOrderRepository.getOne(beerOrderDto.getId());
+    sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.E_ALLOCATION_FAILED);
 
   }
 

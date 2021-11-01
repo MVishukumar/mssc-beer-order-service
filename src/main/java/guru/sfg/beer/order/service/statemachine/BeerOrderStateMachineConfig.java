@@ -38,12 +38,22 @@ public class BeerOrderStateMachineConfig extends StateMachineConfigurerAdapter<B
         .source(BeerOrderStatusEnum.NEW).target(BeerOrderStatusEnum.VALIDATION_PENDING).event(BeerOrderEventEnum.E_VALIDATE_ORDER)
           .action(validateOrderAction)
         .and().withExternal()
-        .source(BeerOrderStatusEnum.NEW).target(BeerOrderStatusEnum.VALIDATED).event(BeerOrderEventEnum.E_VALIDATION_PASSED)
+          .source(BeerOrderStatusEnum.NEW).target(BeerOrderStatusEnum.VALIDATED).event(BeerOrderEventEnum.E_VALIDATION_PASSED)
         .and().withExternal()
-        .source(BeerOrderStatusEnum.NEW).target(BeerOrderStatusEnum.VALIDATION_EXCEPTION).event(BeerOrderEventEnum.E_VALIDATION_FAILED)
+          .source(BeerOrderStatusEnum.NEW).target(BeerOrderStatusEnum.VALIDATION_EXCEPTION).event(BeerOrderEventEnum.E_VALIDATION_FAILED)
         .and().withExternal()
-        .source(BeerOrderStatusEnum.VALIDATED).target(BeerOrderStatusEnum.ALLOCATION_PENDING).event(BeerOrderEventEnum.E_ALLOCATE_ORDER)
-          .action(allocateOrderAction);
+          .source(BeerOrderStatusEnum.VALIDATED).target(BeerOrderStatusEnum.ALLOCATION_PENDING).event(BeerOrderEventEnum.E_ALLOCATE_ORDER)
+            .action(allocateOrderAction)
+        .and().withExternal()
+          .source(BeerOrderStatusEnum.ALLOCATION_PENDING).target(BeerOrderStatusEnum.ALLOCATED).event(BeerOrderEventEnum.E_ALLOCATION_SUCCESS)
+          //.action(allocateOrderAction)
+        .and().withExternal()
+          .source(BeerOrderStatusEnum.ALLOCATION_PENDING).target(BeerOrderStatusEnum.ALLOCATION_EXCEPTION).event(BeerOrderEventEnum.E_ALLOCATION_FAILED)
+          //.action(allocateOrderAction)
+        .and().withExternal()
+          .source(BeerOrderStatusEnum.ALLOCATION_PENDING).target(BeerOrderStatusEnum.PENDING_INVENTORY).event(BeerOrderEventEnum.E_ALLOCATION_NO_INVENTORY)
+        ;
+
     ;
   }
 }
