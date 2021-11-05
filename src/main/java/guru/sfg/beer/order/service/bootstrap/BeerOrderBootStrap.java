@@ -36,6 +36,7 @@ public class BeerOrderBootStrap implements CommandLineRunner {
                     .build());
 
             log.debug("Tasting Room Customer Id: " + savedCustomer.getId().toString());
+            System.out.println("Tasting Room Customer Id: " + savedCustomer.getId().toString());
         }
     }
 }

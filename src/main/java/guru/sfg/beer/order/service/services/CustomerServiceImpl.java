@@ -25,6 +25,7 @@ public class CustomerServiceImpl implements CustomerService {
   @Override
   public CustomerPageList listCustomers(Pageable pageable) {
     Page<Customer> customerPage = customerRepository.findAll(pageable);
+    System.out.println("Listing customers, total found: " + customerPage.getTotalElements());
 
     return new CustomerPageList(
         customerPage.stream()
